@@ -1,0 +1,566 @@
+// converted by version  [v3.1.0]
+// on Thu May 14 11:45:40 EEST 2020
+
+.package com/project/pack {
+	.aid 0xA0:0x0:0x0:0x0:0x62:0x3:0x1:0xC:0x6;
+	.version 1.0;
+
+	.imports {
+		0xA0:0x0:0x0:0x0:0x62:0x1:0x1 1.8;		//javacard/framework
+		0xA0:0x0:0x0:0x0:0x62:0x0:0x1 1.0;		//java/lang
+	}
+
+	.applet {
+		0xA0:0x0:0x0:0x0:0x62:0x3:0x1:0xC:0x6:0x1 CardholderVerifApplet;
+	}
+
+	.constantPool {
+		// 0
+		instanceFieldRef 0.9 CardholderVerifApplet/pin;
+		// 1
+		instanceFieldRef short CardholderVerifApplet/balance;
+		// 2
+		instanceFieldRef boolean CardholderVerifApplet/isValidated;
+		// 3
+		.classRef 0.9;		// javacard/framework/OwnerPIN
+		// 4
+		staticMethodRef 0.9.0(BB)V;		// javacard/framework/OwnerPIN.<init>(BB)V
+		// 5
+		staticMethodRef CardholderVerifApplet/<init>([BSB)V;
+		// 6
+		virtualMethodRef 0.9.8([BSB)V;		// update([BSB)V
+		// 7
+		virtualMethodRef 0.3.1()V;		// register()V
+		// 8
+		virtualMethodRef 0.10.1()[B;		// getBuffer()[B
+		// 9
+		virtualMethodRef 0.10.14()Z;		// isISOInterindustryCLA()Z
+		// 10
+		staticMethodRef 0.7.1(S)V;		// javacard/framework/ISOException.throwIt(S)V
+		// 11
+		staticMethodRef CardholderVerifApplet/getBalance(Ljavacard/framework/APDU;)V;
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+		// 12
+		staticMethodRef CardholderVerifApplet/credit(Ljavacard/framework/APDU;)V;
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+		// 13
+		staticMethodRef CardholderVerifApplet/debit(Ljavacard/framework/APDU;)V;
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+		// 14
+		staticMethodRef CardholderVerifApplet/get_cardholder_methods(Ljavacard/framework/APDU;)V;
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+		// 15
+		staticMethodRef CardholderVerifApplet/without_verification(Ljavacard/framework/APDU;)V;
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+		// 16
+		staticMethodRef CardholderVerifApplet/plaintext_pin_verification(Ljavacard/framework/APDU;)V;
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+		// 17
+		virtualMethodRef 0.10.7()S;		// setOutgoing()S
+		// 18
+		virtualMethodRef 0.10.9(S)V;		// setOutgoingLength(S)V
+		// 19
+		virtualMethodRef 0.10.4(SS)V;		// sendBytes(SS)V
+		// 20
+		virtualMethodRef 0.10.6()S;		// setIncomingAndReceive()S
+		// 21
+		.classRef CardholderVerifApplet;
+		// 22
+		staticMethodRef 0.3.0()V;		// javacard/framework/Applet.<init>()V
+		// 23
+		virtualMethodRef 0.9.1([BSB)Z;		// check([BSB)Z
+		// 24
+		staticMethodRef 1.0.0()V;		// java/lang/Object.<init>()V
+	}
+
+	.class public CardholderVerifApplet 0 extends 0.3 {		// extends javacard/framework/Applet
+
+		.fields {
+			 0.9 pin 0;		// Ljavacard/framework/OwnerPIN;
+			 short balance 1;		// S
+			 boolean isValidated 2;		// Z
+			static final byte Wallet_CLA = -128;		// B
+			static final byte WITHOUT_VERIF = 16;		// B
+			static final byte PLAINTEXT_PIN_VERIF = 32;		// B
+			static final byte CREDIT = 48;		// B
+			static final byte DEBIT = 64;		// B
+			static final byte GET_BALANCE = 80;		// B
+			static final byte GET_CVM_LIST = 112;		// B
+			static final short MAX_BALANCE = 32767;		// S
+			static final byte MAX_TRANSACTION_AMOUNT = 127;		// B
+			static final byte PIN_TRY_LIMIT = 3;		// B
+			static final byte MAX_PIN_SIZE = 8;		// B
+			static final short SW_VERIFICATION_FAILED = 25344;		// S
+			static final short SW_PIN_VERIFICATION_REQUIRED = 25345;		// S
+			static final short SW_INVALID_TRANSACTION_AMOUNT = 27267;		// S
+			static final short SW_EXCEED_MAXIMUM_BALANCE = 27268;		// S
+			static final short SW_NEGATIVE_BALANCE = 27269;		// S
+			static final short SW_WRONG_LENGTH = 27270;		// S
+			private static final byte COND_1_b1 = 31;		// B
+			private static final byte COND_1_b2 = 6;		// B
+			private static final byte COND_2_b1 = 1;		// B
+			private static final byte COND_2_b2 = 7;		// B
+			private static final byte Threshold_Amount = 50;		// B
+		}
+
+		.publicMethodTable 7 8 {
+			equals(Ljava/lang/Object;)Z 0;
+			register()V 1;
+			register([BSB)V 2;
+			selectingApplet()Z 3;
+			deselect()V 4;
+			getShareableInterfaceObject(Ljavacard/framework/AID;B)Ljavacard/framework/Shareable; 5;
+			select()Z 6;
+			process(Ljavacard/framework/APDU;)V 7;
+		}
+
+		.packageMethodTable 0 {
+		}
+
+		.method public static install([BSB)V 0 {
+			.stack 4;
+			.locals 0;
+
+				L0:	new 21;		// com/project/pack/CardholderVerifApplet
+					aload_0;
+					sload_1;
+					sload_2;
+					invokespecial 5;		// com/project/pack/CardholderVerifApplet.<init>([BSB)V
+					return;
+		}
+
+		.method protected <init>([BSB)V 1 {
+			.stack 5;
+			.locals 3;
+
+				L0:	aload_0;
+					invokespecial 22;		// javacard/framework/Applet.<init>()V
+					aload_0;
+					new 3;		// javacard/framework/OwnerPIN
+					dup;
+					sconst_3;
+					bspush 8;
+					invokespecial 4;		// javacard/framework/OwnerPIN.<init>(BB)V
+					putfield_a 0;		// reference com/project/pack/CardholderVerifApplet.pin
+					aload_1;
+					sload_2;
+					baload;
+					sstore 4;
+				L1:	sload_2;
+					sload 4;
+					sadd;
+					sconst_1;
+					sadd;
+					sstore_2;
+					aload_1;
+					sload_2;
+					baload;
+					sstore 5;
+				L2:	sload_2;
+					sload 5;
+					sadd;
+					sconst_1;
+					sadd;
+					sstore_2;
+					aload_1;
+					sload_2;
+					baload;
+					sstore 6;
+				L3:	getfield_a_this 0;		// reference com/project/pack/CardholderVerifApplet.pin
+					aload_1;
+					sload_2;
+					sconst_1;
+					sadd;
+					sload 6;
+					invokevirtual 6;		// update([BSB)V
+					aload_0;
+					invokevirtual 7;		// register()V
+					return;
+		}
+
+		.method public process(Ljavacard/framework/APDU;)V 7 {
+			.stack 2;
+			.locals 1;
+
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+				L0:	aload_1;
+					invokevirtual 8;		// getBuffer()[B
+					astore_2;
+				L1:	aload_1;
+					invokevirtual 9;		// isISOInterindustryCLA()Z
+					ifeq L5;
+				L2:	aload_2;
+					sconst_1;
+					baload;
+					bspush -92;
+					if_scmpne L4;
+				L3:	return;
+				L4:	sspush 28160;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+				L5:	aload_2;
+					sconst_0;
+					baload;
+					bspush -128;
+					if_scmpeq L7;
+				L6:	sspush 28160;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+				L7:	aload_2;
+					sconst_1;
+					baload;
+					slookupswitch L14 6 16 L12 32 L13 48 L9 64 L10 80 L8 112 L11;
+				L8:	aload_0;
+					aload_1;
+					invokespecial 11;		// com/project/pack/CardholderVerifApplet.getBalance(Ljavacard/framework/APDU;)V
+					return;
+				L9:	aload_0;
+					aload_1;
+					invokespecial 12;		// com/project/pack/CardholderVerifApplet.credit(Ljavacard/framework/APDU;)V
+					return;
+				L10:	aload_0;
+					aload_1;
+					invokespecial 13;		// com/project/pack/CardholderVerifApplet.debit(Ljavacard/framework/APDU;)V
+					return;
+				L11:	aload_0;
+					aload_1;
+					invokespecial 14;		// com/project/pack/CardholderVerifApplet.get_cardholder_methods(Ljavacard/framework/APDU;)V
+					return;
+				L12:	aload_0;
+					aload_1;
+					invokespecial 15;		// com/project/pack/CardholderVerifApplet.without_verification(Ljavacard/framework/APDU;)V
+					return;
+				L13:	aload_0;
+					aload_1;
+					invokespecial 16;		// com/project/pack/CardholderVerifApplet.plaintext_pin_verification(Ljavacard/framework/APDU;)V
+					return;
+				L14:	sspush 27904;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+					return;
+		}
+
+		.method private get_cardholder_methods(Ljavacard/framework/APDU;)V {
+			.stack 3;
+			.locals 2;
+
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+				L0:	aload_1;
+					invokevirtual 8;		// getBuffer()[B
+					astore_2;
+				L1:	aload_1;
+					invokevirtual 17;		// setOutgoing()S
+					sstore_3;
+				L2:	sload_3;
+					bspush 20;
+					if_scmpge L4;
+				L3:	sspush 26368;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+				L4:	aload_1;
+					bspush 20;
+					invokevirtual 18;		// setOutgoingLength(S)V
+					aload_2;
+					sconst_0;
+					sconst_0;
+					bastore;
+					aload_2;
+					sconst_1;
+					sconst_0;
+					bastore;
+					aload_2;
+					sconst_2;
+					sconst_0;
+					bastore;
+					aload_2;
+					sconst_3;
+					bspush 50;
+					bastore;
+					aload_2;
+					sconst_4;
+					sconst_0;
+					bastore;
+					aload_2;
+					sconst_5;
+					sconst_0;
+					bastore;
+					aload_2;
+					bspush 6;
+					sconst_0;
+					bastore;
+					aload_2;
+					bspush 7;
+					sconst_0;
+					bastore;
+					aload_2;
+					bspush 8;
+					bspush 31;
+					bastore;
+					aload_2;
+					bspush 9;
+					bspush 6;
+					bastore;
+					aload_2;
+					bspush 10;
+					sconst_0;
+					bastore;
+					aload_2;
+					bspush 11;
+					sconst_0;
+					bastore;
+					aload_2;
+					bspush 12;
+					sconst_0;
+					bastore;
+					aload_2;
+					bspush 13;
+					bspush 50;
+					bastore;
+					aload_2;
+					bspush 14;
+					sconst_0;
+					bastore;
+					aload_2;
+					bspush 15;
+					sconst_0;
+					bastore;
+					aload_2;
+					bspush 16;
+					sconst_0;
+					bastore;
+					aload_2;
+					bspush 17;
+					sconst_0;
+					bastore;
+					aload_2;
+					bspush 18;
+					sconst_1;
+					bastore;
+					aload_2;
+					bspush 19;
+					bspush 7;
+					bastore;
+					aload_1;
+					sconst_0;
+					bspush 20;
+					invokevirtual 19;		// sendBytes(SS)V
+					return;
+		}
+
+		.method private credit(Ljavacard/framework/APDU;)V {
+			.stack 3;
+			.locals 4;
+
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+				L0:	aload_1;
+					invokevirtual 8;		// getBuffer()[B
+					astore_2;
+				L1:	aload_2;
+					sconst_4;
+					baload;
+					sstore_3;
+				L2:	aload_1;
+					invokevirtual 20;		// setIncomingAndReceive()S
+					s2b;
+					sstore 4;
+				L3:	sload_3;
+					sconst_1;
+					if_scmpne L5;
+				L4:	sload 4;
+					sconst_1;
+					if_scmpeq L6;
+				L5:	sspush 26368;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+				L6:	aload_2;
+					sconst_5;
+					baload;
+					sstore 5;
+				L7:	sload 5;
+					bspush 127;
+					if_scmpgt L9;
+				L8:	sload 5;
+					ifge L10;
+				L9:	sspush 27267;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+				L10:	getfield_s_this 1;		// short com/project/pack/CardholderVerifApplet.balance
+					sload 5;
+					sadd;
+					sspush 32767;
+					if_scmple L12;
+				L11:	sspush 27268;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+				L12:	aload_0;
+					getfield_s_this 1;		// short com/project/pack/CardholderVerifApplet.balance
+					sload 5;
+					sadd;
+					putfield_s 1;		// short com/project/pack/CardholderVerifApplet.balance
+					return;
+		}
+
+		.method private getBalance(Ljavacard/framework/APDU;)V {
+			.stack 4;
+			.locals 2;
+
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+				L0:	aload_1;
+					invokevirtual 8;		// getBuffer()[B
+					astore_2;
+				L1:	aload_1;
+					invokevirtual 17;		// setOutgoing()S
+					sstore_3;
+				L2:	sload_3;
+					sconst_2;
+					if_scmpge L4;
+				L3:	sspush 26368;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+				L4:	aload_1;
+					sconst_2;
+					invokevirtual 18;		// setOutgoingLength(S)V
+					aload_2;
+					sconst_0;
+					getfield_s_this 1;		// short com/project/pack/CardholderVerifApplet.balance
+					bspush 8;
+					sshr;
+					s2b;
+					bastore;
+					aload_2;
+					sconst_1;
+					getfield_s_this 1;		// short com/project/pack/CardholderVerifApplet.balance
+					sspush 255;
+					sand;
+					s2b;
+					bastore;
+					aload_1;
+					sconst_0;
+					sconst_2;
+					invokevirtual 19;		// sendBytes(SS)V
+					return;
+		}
+
+		.method private debit(Ljavacard/framework/APDU;)V {
+			.stack 3;
+			.locals 4;
+
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+				L0:	getfield_b_this 2;		// boolean com/project/pack/CardholderVerifApplet.isValidated
+					ifne L2;
+				L1:	sspush 25345;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+				L2:	aload_1;
+					invokevirtual 8;		// getBuffer()[B
+					astore_2;
+				L3:	aload_2;
+					sconst_4;
+					baload;
+					sstore_3;
+				L4:	aload_1;
+					invokevirtual 20;		// setIncomingAndReceive()S
+					s2b;
+					sstore 4;
+				L5:	sload_3;
+					sconst_1;
+					if_scmpne L7;
+				L6:	sload 4;
+					sconst_1;
+					if_scmpeq L8;
+				L7:	sspush 26368;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+				L8:	aload_2;
+					sconst_5;
+					baload;
+					sstore 5;
+				L9:	sload 5;
+					bspush 127;
+					if_scmpgt L11;
+				L10:	sload 5;
+					ifge L12;
+				L11:	sspush 27267;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+				L12:	getfield_s_this 1;		// short com/project/pack/CardholderVerifApplet.balance
+					sload 5;
+					ssub;
+					ifge L14;
+				L13:	sspush 27269;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+				L14:	aload_0;
+					getfield_s_this 1;		// short com/project/pack/CardholderVerifApplet.balance
+					sload 5;
+					ssub;
+					putfield_s 1;		// short com/project/pack/CardholderVerifApplet.balance
+					sconst_0;
+					putfield_b_this 2;		// boolean com/project/pack/CardholderVerifApplet.isValidated
+					return;
+		}
+
+		.method private without_verification(Ljavacard/framework/APDU;)V {
+			.stack 2;
+			.locals 0;
+
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+				L0:	sconst_1;
+					putfield_b_this 2;		// boolean com/project/pack/CardholderVerifApplet.isValidated
+					return;
+		}
+
+		.method private plaintext_pin_verification(Ljavacard/framework/APDU;)V {
+			.stack 4;
+			.locals 2;
+
+			.descriptor	Ljavacard/framework/APDU;	0.10;
+
+				L0:	aload_1;
+					invokevirtual 8;		// getBuffer()[B
+					astore_2;
+				L1:	aload_1;
+					invokevirtual 20;		// setIncomingAndReceive()S
+					s2b;
+					sstore_3;
+				L2:	getfield_a_this 0;		// reference com/project/pack/CardholderVerifApplet.pin
+					aload_2;
+					sconst_5;
+					sload_3;
+					invokevirtual 23;		// check([BSB)Z
+					ifne L4;
+				L3:	sspush 25344;
+					invokestatic 10;		// javacard/framework/ISOException.throwIt(S)V
+				L4:	sconst_1;
+					putfield_b_this 2;		// boolean com/project/pack/CardholderVerifApplet.isValidated
+					return;
+		}
+
+	}
+
+	.class final CardholderVerifAppletStrings extends 1.0 {		// extends java/lang/Object
+
+		.fields {
+			static final byte[] Package = {99,111,109,46,112,114,111,106,101,99,116,46,112,97,99,107};		// [B
+			static final byte[] AppletName = {67,97,114,100,104,111,108,100,101,114,86,101,114,105,102,65,112,112,108,101,116};		// [B
+		}
+
+		.publicMethodTable 1 1 {
+			equals(Ljava/lang/Object;)Z 0;
+		}
+
+		.packageMethodTable 0 {
+		}
+
+		.method  <init>()V {
+			.stack 1;
+			.locals 0;
+
+				L0:	aload_0;
+					invokespecial 24;		// java/lang/Object.<init>()V
+					return;
+		}
+
+	}
+
+}

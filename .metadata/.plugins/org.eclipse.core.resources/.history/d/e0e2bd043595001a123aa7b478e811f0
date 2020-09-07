@@ -1,0 +1,324 @@
+
+import com.sun.javacard.apduio.Apdu;
+import com.sun.javacard.apduio.CadClientInterface;
+import com.sun.javacard.apduio.CadDevice;
+import com.sun.javacard.apduio.CadTransportException;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.net.Socket;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Scanner;
+
+public class Terminal {
+	final static byte GET_BALANCE = (byte) 0x50;
+	final static byte CREDIT = (byte) 0x30;
+
+	private static Socket sock;
+	private static OutputStream os;
+	private static InputStream is;
+	private static CadClientInterface cad;
+	Apdu apdu;
+	static File file = new File("C:\\Users\\Home\\SCAproject\\SCA-project\\apdu_scripts\\cap-SCA-project.script");
+
+	private void connect() {
+		try {
+			sock = new Socket("localhost", 9025);
+			os = sock.getOutputStream();
+			is = sock.getInputStream();
+			// Initialize the instance card acceptance device
+			cad = CadDevice.getCadClientInstance(CadDevice.PROTOCOL_T1, is, os);
+
+		} catch (IOException e) {
+			System.err.println("Conection Fail!");
+		}
+	}
+
+	public static void powerUp() throws IOException, CadTransportException {
+
+		cad.powerUp();
+		System.out.println("Card is on!");
+	}
+
+	public static void powerDown() throws IOException, CadTransportException {
+
+		cad.powerDown();
+		System.out.println("Card is off!");
+	}
+
+	public static void processCapFile() throws IOException, CadTransportException {
+		// parse the cap file to install the applet
+		// have to get first line without // and !-powerup;
+		Scanner file_s = new Scanner(file);
+		byte[] byte_arr = new byte[4];
+		String line;
+		while (file_s.hasNextLine()) {
+			line = file_s.nextLine();
+			if (line.length() > 3) {
+				line = line.substring(0, line.length() - 1);
+				// have to get first line without // and !-powerup;
+
+				if (line.charAt(0) != '/' && line.charAt(0) != 'p') {
+					String[] splits = line.split(" ");
+					//get the header
+					for (int i = 0; i < 4; i++) {
+						byte b = 0;
+
+						b += Integer.parseInt(String.valueOf(splits[i].charAt(2)), 16) * 16;
+						b += Integer.parseInt(String.valueOf(splits[i].charAt(3)), 16);
+
+						byte_arr[i] = (byte) b;
+					}
+
+					int bodySize = splits.length - 6;
+					byte[] body = new byte[bodySize];
+
+					int j = 0;
+					//get the body
+					for (int i = 5; i < splits.length - 1; i++) {
+
+						byte b = 0;
+						b += Integer.parseInt(String.valueOf(splits[i].charAt(2)), 16) * 16;
+						b += Integer.parseInt(String.valueOf(splits[i].charAt(3)), 16);
+
+						body[j] = (Byte) b;
+						j++;
+					}
+
+					Apdu apdu = new Apdu();
+					apdu.command = byte_arr;
+					apdu.setDataIn(body);
+					// System.out.println(apdu);
+					cad.exchangeApdu(apdu);
+//				if(apdu.getStatus()==0x9000) {
+//					System.out.println("succes");
+//				}else {
+//					System.out.println("Error: "+ apdu.getStatus());
+//				}
+				}
+			}
+		}
+
+	}
+
+	private static void create() throws IOException, CadTransportException {
+		Apdu apdu = new Apdu();
+		apdu.command[0] = (byte) 0x80;
+		apdu.command[1] = (byte) 0xB8;
+		apdu.command[2] = (byte) 0x00;
+		apdu.command[3] = (byte) 0x00;
+		apdu.Lc = (byte) 0x14;
+		byte[] data = new byte[] { (byte) 0x0a, (byte) 0xa0, 0x0, 0x0, 0x0, 0x62, 0x3, 0x1, 0xc, 0x6, 0x1, 0x08, 0x0,
+				0x0, 0x05, 0x01, 0x02, 0x03, 0x04, 0x05 };
+
+		apdu.dataIn = data;
+		apdu.setDataIn(apdu.dataIn, apdu.Lc);
+		try {
+			cad.exchangeApdu(apdu);
+			// System.out.println(apdu);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (CadTransportException e) {
+			e.printStackTrace();
+		}
+		if (apdu.getStatus() != 0x9000) {
+			System.out.println("Applet creation error -> " + apdu.getStatus());
+			System.exit(1);
+		}
+	}
+
+	private void select() {
+
+		apdu = new Apdu();
+		apdu.command[Apdu.CLA] = 0x00;
+		apdu.command[Apdu.INS] = (byte) 0xA4;
+		apdu.command[Apdu.P1] = 0x04;
+		apdu.command[Apdu.P2] = 0x00;
+		apdu.setDataIn(new byte[] { (byte) 0xa0, 0x0, 0x0, 0x0, 0x62, 0x3, 0x1, 0xc, 0x6, 0x1 });
+		try {
+			cad.exchangeApdu(apdu);
+			System.out.println(apdu);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (CadTransportException e) {
+			e.printStackTrace();
+		}
+		if (apdu.getStatus() != 0x9000) {
+			System.out.println("Applet selection error -> " + apdu.getStatus());
+			System.exit(1);
+		}
+	}
+
+	private Apdu get_cvm_list() {
+		
+		LinkedList<Short> llist=new LinkedList<Short>();
+		apdu = new Apdu();
+		apdu.command = new byte[] { (byte) 0x80, (byte) 0x70, 0x00, 0x00 };
+		apdu.setDataIn(new byte[] {});
+		apdu.setLe(0x1E);
+		try {
+			cad.exchangeApdu(apdu);
+			System.out.println(apdu);
+			System.out.println(apdu.getLe());
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (CadTransportException e) {
+			e.printStackTrace();
+		}
+		if (apdu.getStatus() != 0x9000) {
+			System.out.println("error in getting cvm list -> " + apdu.getStatus());
+			System.exit(1);
+		}
+
+		return apdu;
+	}
+
+	private void verify_pin() throws IOException {
+		byte[] PIN;
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+		System.out.println("Insert PIN: ");
+		String pin = br.readLine();
+		PIN = pinToDec(pin);
+
+		apdu = new Apdu();
+		apdu.command[Apdu.CLA] = (byte) 0x80;
+		apdu.command[Apdu.INS] = (byte) 0x20;
+		apdu.command[Apdu.P1] = 0x00;
+		apdu.command[Apdu.P2] = 0x00;
+		apdu.setLe(0x1E);
+
+		apdu.setDataIn(PIN);
+
+		try {
+			cad.exchangeApdu(apdu);
+			System.out.println(apdu);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (CadTransportException e) {
+			e.printStackTrace();
+		}
+		if (apdu.getStatus() != 0x9000) {
+			System.out.println("Verification failed -> " + apdu.getStatus());
+			System.exit(1);
+		}
+	}
+	//convert to byte[] for the setDataIn method
+	public static byte[] pinToDec(String code) {
+		byte[] result = new byte[code.length()];
+		for (int i = 0; i < code.length(); i++) {
+			int number = Character.getNumericValue(code.charAt(i));
+			result[i] = (byte) (number);
+		}
+		return result;
+	}
+
+	public void credit() throws IOException {
+
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+		System.out.println("Credit amount: ");
+		short amount;
+		try {
+			amount = Short.parseShort(br.readLine());
+		} catch (NumberFormatException e) {
+			throw new IOException("Amount is invalid");
+		}
+
+		byte byteAmount = (byte) (amount & 0xff);
+
+		System.out.println(byteAmount);
+		apdu = new Apdu();
+		apdu.command[Apdu.CLA] = (byte) 0x80;
+		apdu.command[Apdu.INS] = (byte) 0x30;
+		apdu.command[Apdu.P1] = 0x00;
+		apdu.command[Apdu.P2] = 0x00;
+		apdu.setDataIn(new byte[] { byteAmount }, 0x01);
+		apdu.setLe(0x7f);
+
+		try {
+			cad.exchangeApdu(apdu);
+			System.out.println(apdu);
+			System.out.println("The attempt to credit " + byteAmount + " succeeded!");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (CadTransportException e) {
+			e.printStackTrace();
+		}
+		if (apdu.getStatus() != 0x9000) {
+			System.out.println("the attempt to credit failed." + " -> " + apdu.getStatus());
+			System.exit(1);
+		}
+
+	}
+	public void getBalance() {
+		
+		apdu = new Apdu();
+		apdu.command[Apdu.CLA] = (byte) 0x80;
+		apdu.command[Apdu.INS] = (byte) 0x50;
+		apdu.command[Apdu.P1] = 0x00;
+		apdu.command[Apdu.P2] = 0x00;
+		try {
+			cad.exchangeApdu(apdu);
+			System.out.println(apdu);
+			System.out.println("The attempt to get account balance succeeded!");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (CadTransportException e) {
+			e.printStackTrace();
+		}
+		if (apdu.getStatus() != 0x9000) {
+			System.out.println("the attempt to credit failed." + " -> " + apdu.getStatus());
+			System.exit(1);
+		}
+	}
+	
+	public void debit() throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		System.out.println("debit amount: ");
+		short amount;
+		byte[][] CARD_CVM_LIST;
+		apdu=new Apdu();
+		apdu=get_cvm_list();
+		try {
+			amount = Short.parseShort(br.readLine());
+		} catch (NumberFormatException e) {
+			throw new IOException("Amount is invalid");
+		}
+		  CARD_CVM_LIST = new byte[][]{new byte[]{apdu.getDataOut()[3], apdu.getDataOut()[8], apdu.getDataOut()[9]},
+            new byte[]{apdu.getDataOut()[13], apdu.getDataOut()[18], apdu.getDataOut()[19]}};
+            System.out.println(apdu);
+   
+            }        	  
+          
+		
+	
+	public static void main(String[] argv) throws Exception {
+
+		Terminal terminal = new Terminal();
+		terminal.connect();
+		terminal.powerUp();
+		terminal.processCapFile();
+		terminal.create();
+		terminal.select();
+		terminal.get_cvm_list();
+		terminal.credit();
+		// terminal.verify_pin();
+		//terminal.getBalance();
+		terminal.debit();
+		terminal.powerDown();
+
+	}
+
+}
